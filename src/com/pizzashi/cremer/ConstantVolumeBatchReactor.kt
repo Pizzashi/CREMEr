@@ -275,7 +275,116 @@ class ConstantVolumeBatchReactor {
         return YailList.makeList(listOf(kVal, rsq))
     }
 
-    // fun NthOrderIrreversible()
+    /**
+     *  x, y => time, Ca
+     *  This function iterates over a large number of points from -1 to 3, as orders beyond that are uncommon.
+     *  The function returns a YailList where [n, rsq, k]
+     */
+    fun NthOrderIrreversible(x: YailList, y: YailList, type: String, Cao: Double = 1.0): YailList {
+        val timeValues = tools.YailListToDouble(x)
+        val aVal = tools.YailListToDouble(y)
+
+        var kVal: Double = 0.0
+        var rsq: Double = -1.0
+
+        val listCa = mutableListOf<Double>()
+        if (type == "Conversion") {
+            for (conversion in aVal) {
+                listCa.add(Cao*(1 - conversion))
+            }
+        }
+        else if (type == "Concentration") {
+            val listCa = aVal
+        }
+
+        // Take note that for this rate form, n must not be equal to 1
+        var highestRSQ: Double = 0.0
+        var bestOrder: Double = 0.0
+        var bestK: Double = 1.0
+
+        // Start from zero because why not, may be able to set this in settings...
+        var n = 0.0
+        val correctedY = mutableListOf<Double>()
+
+        while (n < 1.0) {
+            for (c in listCa) {
+                correctedY.add(math.pow(c, n))
+            }
+
+            var regressionResults = tools.LinearRegression(timeValues, correctedY)
+            var rsq = regressionResults[2]
+            var slope = regressionResults[0]
+
+            if (rsq > 0.999) {
+                highestRSQ = rsq
+                bestOrder = n
+                bestK = slope
+                break
+            }
+            else if (rsq > highestRSQ) {
+                highestRSQ = rsq
+                bestOrder = n
+                bestK = slope
+            }
+
+            n += 0.01
+        }
+
+
+        // Next from 1.01 to 3, feeling the heat now...
+        n = 1.01
+        while (n <= 3) {
+            for (c in listCa) {
+                correctedY.add(math.pow(c, n))
+            }
+
+            var regressionResults = tools.LinearRegression(timeValues, correctedY)
+            var rsq = regressionResults[2]
+            var slope = regressionResults[0]
+
+            if (rsq > 0.999) {
+                highestRSQ = rsq
+                bestOrder = n
+                bestK = slope
+                break
+            }
+            else if (rsq > highestRSQ) {
+                highestRSQ = rsq
+                bestOrder = n
+                bestK = slope
+            }
+
+            n += 0.01
+        }
+
+        // Lastly from -1 to -0.01
+        n = -1.0
+        while (n < 0) {
+            for (c in listCa) {
+                correctedY.add(math.pow(c, n))
+            }
+
+            var regressionResults = tools.LinearRegression(timeValues, correctedY)
+            var rsq = regressionResults[2]
+            var slope = regressionResults[0]
+
+            if (rsq > 0.999) {
+                highestRSQ = rsq
+                bestOrder = n
+                bestK = slope
+                break
+            }
+            else if (rsq > highestRSQ) {
+                highestRSQ = rsq
+                bestOrder = n
+                bestK = slope
+            }
+
+            n += 0.01
+        }
+
+        return YailList.makeList(listOf(bestOrder, highestRSQ, bestK))
+    }
 
     // fun ZeroOrderIrreversible()
 
