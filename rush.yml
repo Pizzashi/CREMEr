@@ -3,7 +3,7 @@
 
 ---
 name: Cremer
-description: Extension component for Cremer. Created using Rush.
+description: Helper extension for CREME. This extension is the heart and soul of the automatic calculators.
 
 version:
   number: auto

@@ -114,10 +114,10 @@ class ConstantVolumeBatchReactor {
         y: YailList,
         z: YailList,
         t: YailList,
-        type: String
+        type: String,
         Cao: Double = 1.0,
         Cbo: Double = 1.0,
-        Cdo: Double = 1.0) {
+        Cdo: Double = 1.0): YailList {
 
         val timeValues = tools.YailListToDouble(x)
         val aVal = tools.YailListToDouble(y)
@@ -168,22 +168,25 @@ class ConstantVolumeBatchReactor {
     fun ThirdOrderTrimolecularIrreversible_A2B(
         x: YailList,
         y: YailList,
-        z: YailList
+        z: YailList,
         type: String,
         Cao: Double = 1.0,
-        Cbo: Double = 1.0) {
+        Cbo: Double = 1.0): YailList {
                     
         val timeValues = tools.YailListToDouble(x)
         val aVal = tools.YailListToDouble(y)
         val bVal = tools.YailListToDouble(z)
         val M = Cbo/Cao
 
+        var kVal: Double = 0.0
+        var rsq: Double = -1.0
+
+        val listCa = mutableListOf<Double>()
+        val listCb = mutableListOf<Double>()
         if (type == "Conversion") {
             for (i in aVal.indices) {
-                val listCa = mutableListOf<Double>()
-                val listCb = mutableListOf<Double>()
-                listCa.add(aVal[i])
-                listCb.add(bVal[i])
+                listCa.add(Cao*(1 - aVal[i]))
+                listCb.add(Cbo*(1 - bVal[i]))
             }
         }
         else if (type == "Concentration") {
@@ -191,13 +194,86 @@ class ConstantVolumeBatchReactor {
             val listCb = bVal
         }
 
-        if (M == 2) {
-            val correctedY = 
+        val correctedY = mutableListOf<Double>()
+        if (M == 2.0) {    
+            for (concentration in listCa) {
+                correctedY.add(1/(concentration*concentration))
+            }
+
+            val regressionResults = tools.LinearRegression(timeValues, correctedY)
+            kVal = regressionResults[0]/8
+            rsq = regressionResults[2]
+        }
+        else {
+            val firstConst = (2*Cao - Cbo)/Cbo
+            for (i in listCa.indices) {
+                correctedY.add((firstConst*(Cbo - listCb[i])/listCb[i]) + math.ln((Cao*listCb[i])/(Cbo*listCa[i])))
+            }
+
+            val regressionResults = tools.LinearRegression(timeValues, correctedY)
+            kVal = regressionResults[0]/((2*Cao - Cbo )*(2*Cao - Cbo))
+            rsq = regressionResults[2]
         }
 
+        return YailList.makeList(listOf(kVal, rsq))
     }
 
-    // fun ThirdOrderTrimolecularIrreversible_AB()
+    /**
+     *  x, y, z => time, Ca, Cb
+     *  The function returns a YailList where [k, rsq]
+     */
+    fun ThirdOrderTrimolecularIrreversible_AB(
+        x: YailList,
+        y: YailList,
+        z: YailList,
+        type: String,
+        Cao: Double = 1.0,
+        Cbo: Double = 1.0): YailList {
+        
+        val timeValues = tools.YailListToDouble(x)
+        val aVal = tools.YailListToDouble(y)
+        val bVal = tools.YailListToDouble(z)
+        val M = Cbo/Cao
+
+        var kVal: Double = 0.0
+        var rsq: Double = -1.0
+
+        val listCa = mutableListOf<Double>()
+        val listCb = mutableListOf<Double>()
+        if (type == "Conversion") {
+            for (i in aVal.indices) {
+                listCa.add(Cao*(1 - aVal[i]))
+                listCb.add(Cbo*(1 - bVal[i]))
+            }
+        }
+        else if (type == "Concentration") {
+            val listCa = aVal
+            val listCb = bVal
+        }
+
+        val correctedY = mutableListOf<Double>()
+        if (M == 1.0) {    
+            for (concentration in listCa) {
+                correctedY.add(1/(concentration*concentration))
+            }
+
+            val regressionResults = tools.LinearRegression(timeValues, correctedY)
+            kVal = regressionResults[0]/2
+            rsq = regressionResults[2]
+        }
+        else {
+            val firstConst = (Cao - Cbo)/Cbo
+            for (i in listCa.indices) {
+                correctedY.add((firstConst*(Cbo - listCb[i])/listCb[i]) + math.ln((Cao*listCb[i])/(Cbo*listCa[i])))
+            }
+
+            val regressionResults = tools.LinearRegression(timeValues, correctedY)
+            kVal = regressionResults[0]/((Cao - Cbo)*(Cao - Cbo))
+            rsq = regressionResults[2]
+        }
+
+        return YailList.makeList(listOf(kVal, rsq))
+    }
 
     // fun NthOrderIrreversible()
 
