@@ -26,6 +26,7 @@ class Cremer(container: ComponentContainer) : AndroidNonvisibleComponent(contain
     fun ThirdOrderTrimolecularIrreversible_ABD(time: YailList, a: YailList, b: YailList, d: YailList, type: String, Cao: Double, Cbo: Double, Cdo: Double) =
         cvbr.ThirdOrderTrimolecularIrreversible_ABD(time, a, b, d, type, Cao, Cbo, Cdo)
 
+
     @SimpleFunction(description = "Solves for 3rd order irreversible reaction in the form of A + 2B -> R.")
     fun ThirdOrderTrimolecularIrreversible_A2B(time: YailList, a: YailList, b: YailList, type: String, Cao: Double, Cbo: Double) =
         cvbr.ThirdOrderTrimolecularIrreversible_A2B(time, a, b, type, Cao, Cbo)
