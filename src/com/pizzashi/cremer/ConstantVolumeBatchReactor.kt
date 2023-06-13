@@ -389,15 +389,135 @@ class ConstantVolumeBatchReactor {
         return YailList.makeList(listOf(bestOrder, highestRSQ, bestK))
     }
 
-    // fun ZeroOrderIrreversible()
+    /**
+     *  x is time and y corresponds to either Ca or Xa
+     *  The function returns a YailList where [k, rsq]
+     */
+    fun ZeroOrderIrreversible(x: YailList, y: YailList, type: String, Cao: Double = 1.0): YailList {
+        val timeValues = tools.YailListToDouble(x)
+        val yValues = tools.YailListToDouble(y)
+        var kVal: Double = 0.0
+        var rsq: Double = -1.0
 
-    // fun ParallelReactions()
+        val correctedY = mutableListOf<Double>()
+        if (type == "Conversion") {
+            val regressionResults = tools.LinearRegression(timeValues, yValues)
+            kVal = -regressionResults[0]/Cao
+            rsq = regressionResults[2]
+        }
+        else if (type == "Concentration") {
+            val regressionResults = tools.LinearRegression(timeValues, yValues)
+            kVal = -regressionResults[0]
+            rsq = regressionResults[2]
+        }
 
-    // fun HomogenousCatalyzedReactions()
+        return YailList.makeList(listOf(kVal, rsq))
+    }
+
+    /**
+     *  x, y, z, t => t, a, r, s
+     *  The function returns a YailList where [k1, k2, rsq]
+     */
+    fun ParallelReactions(x: YailList, y: YailList, z: YailList, t: YailList, Cro: Double = 1.0, Cso: Double = 1.0): YailList {
+        val timeVal = tools.YailListToDouble(x)
+        val aVal = tools.YailListToDouble(y)
+        val rVal = tools.YailListToDouble(z)
+        val sVal = tools.YailListToDouble(t)
+        var rsq: Double = -1.0
+
+        val correctedY = mutableListOf<Double>()
+        for (conc in aVal) {
+            correctedY.add(-math.ln(conc))
+        }
+        val kSumRegressionResults = tools.LinearRegression(timeVal, correctedY)
+        // (k1 + k2)
+        val kSum = kSumRegressionResults[0]
+        rsq = kSumRegressionResults[2]
+
+        val kRatioRegressionResults = tools.LinearRegression(sVal, rVal)
+        // k1/k2
+        val kRatio = kRatioRegressionResults[0]
+
+        val k2 = kSum/(kRatio + 1)
+        val k1 = kRatio*k2
+
+        return YailList.makeList(listOf(k1, k2, rsq))
+    }
+
+    /**
+     *  x, y => t, a
+     *  The function returns a YailList where [k, rsq]
+     */
+    fun AutocatalyticReactions(x: YailList, y: YailList, type: String, Cao: Double = 1.0, Cro: Double = 1.0): YailList {
+        val timeVal = tools.YailListToDouble(x)
+        val aVal = tools.YailListToDouble(y)
+        val kVal: Double
+        var rsq: Double = -1.0
+        val M: Double = Cro/Cao
+
+        val conversionList = mutableListOf<Double>()
+        if (type == "Concentration") {
+            for (conc in aVal) {
+                conversionList.add(1 - conc/Cao)
+            }
+        } else if (type == "Conversion") {
+            for (conv in aVal) {
+                conversionList.add(conv)
+            }
+        }
+
+        val correctedY = mutableListOf<Double>()
+        for (conv in conversionList) {
+            correctedY.add(math.ln((M + conv)/(M*(1 - conv))))
+        }
+
+        val regressionResults = tools.LinearRegression(timeVal, correctedY)
+        kVal = regressionResults[0]/(Cao + Cro)
+        rsq = regressionResults[2]
+
+        return YailList.makeList(listOf(kVal, rsq))
+    }
+
+    /**
+     *  x, y => t, a
+     *  The function returns a YailList where [k1, k2, rsq]
+     */
+    fun ShiftingOrderReactions(x: YailList, y: YailList, type: String, Cao: Double = 1.0): YailList {
+        val timeVal = tools.YailListToDouble(x)
+        val aVal = tools.YailListToDouble(y)
+        var rsq: Double = -1.0
+
+        val concA = mutableListOf<Double>()
+        if (type == "Conversion") {
+            for (conv in aVal) {
+                concA.add(Cao*(1 - conv))
+            }
+        } else if (type == "Concentration") {
+            for (conc in aVal) {
+                concA.add(conc)
+            }
+        }
+
+        val correctedY = mutableListOf<Double>()
+        val correctedX = mutableListOf<Double>()
+
+        for (i in timeVal.indices) {
+            correctedX.add(timeVal[i]/(Cao - concA[i]))
+        }
+
+        for (conc in concA) {
+            correctedY.add((math.ln(Cao/conc))/(Cao - conc))
+        }
+
+        val regressionResults = tools.LinearRegression(correctedX, correctedY)
+        val k1 = regressionResults[0]
+        val k2 = -regressionResults[1]
+        rsq = regressionResults[2]
+
+        return YailList.makeList(listOf(k1, k2, rsq))
+    }
 
     // fun FirstOrderReversible()
 
     // fun SecondOrderReversible()
-
-    // fun ShiftingOrderReactions()
 }

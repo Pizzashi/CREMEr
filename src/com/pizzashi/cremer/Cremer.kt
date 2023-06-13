@@ -38,4 +38,20 @@ class Cremer(container: ComponentContainer) : AndroidNonvisibleComponent(contain
     @SimpleFunction(description = "Determines the best order of a reaction.")
     fun NthOrderIrreversible(time: YailList, a: YailList, type: String, Cao: Double) =
         cvbr.NthOrderIrreversible(time, a, type, Cao)
+
+    @SimpleFunction(description = "Solves for 0th order irreversible reaction.")
+    fun ZeroOrderIrreversible(time: YailList, a: YailList, type: String, Cao: Double) =
+        cvbr.ZeroOrderIrreversible(time, a, type, Cao)
+    
+    @SimpleFunction(description = "Solves all k values for an irreversible parallel reaction.")
+    fun ParallelReactions(time: YailList, a: YailList, r: YailList, s: YailList, Cro: Double, Cso: Double) =
+        cvbr.ParallelReactions(time, a, r, s, Cro, Cso)
+
+    @SimpleFunction(description = "Solves an autocatalytic reaction.")
+    fun AutocatalyticReactions(time: YailList, a: YailList, type: String, Cao: Double, Cro: Double) =
+        cvbr.AutocatalyticReactions(time, a, type, Cao, Cro)
+
+    @SimpleFunction(description = "Solves the k values of a reaction with shifting order.")
+    fun ShiftingOrderReactions(time: YailList, a: YailList, type: String, Cao: Double) =
+        cvbr.ShiftingOrderReactions(time, a, type, Cao)
 }
