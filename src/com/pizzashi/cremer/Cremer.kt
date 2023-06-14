@@ -9,6 +9,11 @@ class Cremer(container: ComponentContainer) : AndroidNonvisibleComponent(contain
 
     val math = Math()
     val cvbr = ConstantVolumeBatchReactor()
+    val special = SpecialCalculations()
+
+    @SimpleFunction(description = "Solves for the activation energy by plotting lnk versus 1/T.")
+    fun ArrheniusEquation(k: YailList, temp: YailList): YailList =
+        special.ArrheniusEquation(k, temp)
 
     @SimpleFunction(description = "Solves for 1st order irreversible reaction.")
     fun FirstOrderIrreversible(time: YailList, a: YailList, type: String): YailList =
