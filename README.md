@@ -1,9 +1,13 @@
 ## CREMEr
+An App Inventor 2 extension for CREME (Chemical Reaction Engineering Made Easy).
 
 ### About
 This project was created to perform the back-breaking calculations for the CREME app, which is the final requirement of the Chemical Reaction Engineering (Kinetics) course.
 
 ### Building
+This extension is written in Kotlin and compiled using [Rush](https://community.appinventor.mit.edu/t/rush-a-new-and-improved-way-of-building-extensions/28699).
+
+
 While you can't directly build your own extension from this repository alone, due to Rush requiring local dependencies (i.e., data it generates in your computer), the [code](src/com/pizzashi/cremer) is documented _(although not satisfactorily)_ should you want to build your own extension regarding calculations in reaction kinetics, in Kotlin.
 
 ### Scope
